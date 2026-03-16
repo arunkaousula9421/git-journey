@@ -16,4 +16,4 @@ jobs:
             ls -ltr
             cat one.txt
         - name: Executing Shell Script
-          run: ./scripts/ascii-script.sh
+          run: ./.github/scripts/ascii-script.sh
