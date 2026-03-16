@@ -10,5 +10,8 @@ jobs:
           uses: actions/checkout@v6
         - name: Welcome Message
           run: echo "My First Commit to run Github Actions"
-        - name: List Files
-          run: ls
+        - name: List and Read Files
+          run: |
+            echo "My First Github Actions"
+            ls -ltr
+            cat one.txt
