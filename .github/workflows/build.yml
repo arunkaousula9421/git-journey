@@ -1,0 +1,36 @@
+name: Update Helm Chart Repository
+
+on:
+   push:
+      branches: [main]
+
+jobs:
+    update-values:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo-b
+          uses: actions/checkout@v4
+          with:
+            repository: arunkaousula9421/helm-chart-repo
+            token: ${{ secrets.REPO_HELM_PAT }}
+            ref: main
+
+        - name: Update tag and create PR
+          env:
+            GH_TOKEN: ${{ secrets.REPO_HELM_PAT }}
+          run: |
+            TAG="v${{ github.run_number }}"
+            BRANCH="update/${TAG}"
+            git checkout -b "$BRANCH"
+            sed -i "s|tag:.*|tag: \"${TAG}\"|" values.yaml
+            git config user.name "arunkaousula9421"
+            git config user.email "arunkumaraws9421@gmail.com"
+            git add values.yaml
+            git commit -m "update tag to ${TAG}"
+            git push -u origin "$BRANCH"
+            gh pr create \
+              --repo arunkaousula9421/helm-chart-repo \
+              --base main \
+              --head "$BRANCH" \
+              --title "Update tag to ${TAG}" \
+              --body "Automated update"
