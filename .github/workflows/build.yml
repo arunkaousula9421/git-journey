@@ -25,6 +25,13 @@ jobs:
             sed -i "s|tag:.*|tag: \"${TAG}\"|" values.yaml
             git config user.name "arunkaousula9421"
             git config user.email "arunkumaraws9421@gmail.com"
+
+            if git diff --quiet values.yaml; then
+              echo "Tag is already ${TAG}, nothing to update."
+              exit 0
+            fi
+            
+            git checkout -b "$BRANCH"
             git add values.yaml
             git commit -m "update tag to ${TAG}"
             git push -u origin "$BRANCH"
