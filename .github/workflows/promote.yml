@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pr_url: ${{ steps.create-pr.outputs.pr_url }}
-      tag: ${{ steps.create-pr.outputs.tag }}
-      env: ${{ steps.create-pr.outputs.env }}
     steps:
       - name: Checkout Helm Repo
         uses: actions/checkout@v4
@@ -64,13 +62,7 @@ jobs:
 
   notify:
     needs: promote
-    if: needs.promote.outputs.pr_url != ''
     runs-on: ubuntu-latest
     steps:
       - name: Send PR link to Google Chat
-        run: |
-          curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "text": "🚀 *Promotion PR created*\nTag: ${{ needs.promote.outputs.tag }}\nEnvironment: ${{ needs.promote.outputs.env }}\nPR: ${{ needs.promote.outputs.pr_url }}"
-            }'
+        run: echo ${{needs.promote.outputs.pr_url}}
