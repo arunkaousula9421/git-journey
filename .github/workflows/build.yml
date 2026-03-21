@@ -21,7 +21,6 @@ jobs:
           run: |
             TAG="v${{ github.run_number }}"
             BRANCH="update/${TAG}"
-            git checkout -b "$BRANCH"
             sed -i "s|tag:.*|tag: \"${TAG}\"|" values.yaml
 
             git config user.name "arunkaousula9421"
