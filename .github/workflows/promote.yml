@@ -1,0 +1,55 @@
+name: Promote to Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - qa
+          - prod
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Helm Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.actor }}/helm-chart-repo
+          token: ${{ secrets.REPO_HELM_PAT }}
+          ref: main
+
+      - name: Promote tag to ${{ inputs.environment }}
+        env:
+          GH_TOKEN: ${{ secrets.REPO_HELM_PAT }}
+        run: |
+          ENV="${{ inputs.environment }}"
+          TAG=$(grep 'tag:' values-dev.yaml | sed 's/.*tag: *"\(.*\)"/\1/')
+          BRANCH="promote/${ENV}/${TAG}"
+
+          echo "Promoting tag ${TAG} to ${ENV}"
+          sed -i "s|tag:.*|tag: \"${TAG}\"|" "values-${ENV}.yaml"
+
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
+          if git diff --quiet "values-${ENV}.yaml"; then
+            echo "Tag is already ${TAG} in ${ENV}, nothing to promote."
+            exit 0
+          fi
+
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+
+          git checkout -b "$BRANCH"
+          git add "values-${ENV}.yaml"
+          git commit -m "promote ${TAG} to ${ENV}"
+          git push -u origin "$BRANCH"
+          gh pr create \
+            --repo ${{ github.actor }}/helm-chart-repo \
+            --base main \
+            --head "$BRANCH" \
+            --title "Promote ${TAG} to ${ENV}" \
+            --body "Promoting tag ${TAG} from dev to ${ENV}"
