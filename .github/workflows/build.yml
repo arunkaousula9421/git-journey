@@ -24,8 +24,8 @@ jobs:
             BRANCH="update/${TAG}"
             sed -i "s|tag:.*|tag: \"${TAG}\"|" values.yaml
 
-            git config user.name "arunkaousula9421"
-            git config user.email "arunkumaraws9421@gmail.com"
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
             if git diff --quiet values.yaml; then
               echo "Tag is already ${TAG}, nothing to update."
