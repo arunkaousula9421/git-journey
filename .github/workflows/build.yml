@@ -8,7 +8,7 @@ jobs:
     update-values:
       runs-on: ubuntu-latest
       steps:
-        - name: Checkout repo-b
+        - name: Checkout Helm Repo
           uses: actions/checkout@v4
           with:
             repository: arunkaousula9421/helm-chart-repo
@@ -23,6 +23,7 @@ jobs:
             BRANCH="update/${TAG}"
             git checkout -b "$BRANCH"
             sed -i "s|tag:.*|tag: \"${TAG}\"|" values.yaml
+
             git config user.name "arunkaousula9421"
             git config user.email "arunkumaraws9421@gmail.com"
 
@@ -30,6 +31,8 @@ jobs:
               echo "Tag is already ${TAG}, nothing to update."
               exit 0
             fi
+
+            git push origin --delete "$BRANCH" 2>/dev/null || true
             
             git checkout -b "$BRANCH"
             git add values.yaml
