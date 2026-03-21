@@ -12,7 +12,7 @@ jobs:
         - name: Checkout Helm Repo
           uses: actions/checkout@v4
           with:
-            repository: arunkaousula9421/helm-chart-repo
+            repository: ${{ github.actor }}/helm-chart-repo
             token: ${{ secrets.REPO_HELM_PAT }}
             ref: main
 
@@ -39,7 +39,7 @@ jobs:
             git commit -m "update tag to ${TAG}"
             git push -u origin "$BRANCH"
             gh pr create \
-              --repo arunkaousula9421/helm-chart-repo \
+              --repo ${{ github.actor }}/helm-chart-repo \
               --base main \
               --head "$BRANCH" \
               --title "Update tag to ${TAG}" \
