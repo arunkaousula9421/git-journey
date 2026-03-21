@@ -3,6 +3,7 @@ name: Update Helm Chart Repository
 on:
    push:
       branches: [main]
+   workflow_dispatch:
 
 jobs:
     update-values:
