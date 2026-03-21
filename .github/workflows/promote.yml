@@ -14,6 +14,10 @@ on:
 jobs:
   promote:
     runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ steps.create-pr.outputs.pr_url }}
+      tag: ${{ steps.create-pr.outputs.tag }}
+      env: ${{ steps.create-pr.outputs.env }}
     steps:
       - name: Checkout Helm Repo
         uses: actions/checkout@v4
@@ -23,6 +27,7 @@ jobs:
           ref: main
 
       - name: Promote tag to ${{ inputs.environment }}
+        id: create-pr
         env:
           GH_TOKEN: ${{ secrets.REPO_HELM_PAT }}
         run: |
@@ -47,9 +52,25 @@ jobs:
           git add "values-${ENV}.yaml"
           git commit -m "promote ${TAG} to ${ENV}"
           git push -u origin "$BRANCH"
-          gh pr create \
+          PR_URL=$(gh pr create \
             --repo ${{ github.actor }}/helm-chart-repo \
             --base main \
             --head "$BRANCH" \
             --title "Promote ${TAG} to ${ENV}" \
-            --body "Promoting tag ${TAG} from dev to ${ENV}"
+            --body "Promoting tag ${TAG} from dev to ${ENV}")
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "env=${ENV}" >> "$GITHUB_OUTPUT"
+
+  notify:
+    needs: promote
+    if: needs.promote.outputs.pr_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR link to Google Chat
+        run: |
+          curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "text": "🚀 *Promotion PR created*\nTag: ${{ needs.promote.outputs.tag }}\nEnvironment: ${{ needs.promote.outputs.env }}\nPR: ${{ needs.promote.outputs.pr_url }}"
+            }'
